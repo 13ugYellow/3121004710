@@ -18,15 +18,19 @@ def text_filter(text):
 @profile()
 def read_txt(path):
     # 以读文件方式打开路径中的文件
-    with open(path, 'r', encoding='utf-8') as file:
-        text = file.read()
-        if not text:
-            # 若没有这个文件则结束程序
-            print(path, "file is empty")
-            exit(1)
-    # 将文件内容过滤为纯净文本并拆分，为simhash做准备
-    result = text_filter(text)
-    return result
+    try:
+        with open(path, 'r', encoding='utf-8') as file:
+            text = file.read()
+            if not text:
+                # 若没有这个文件则结束程序
+                # print(path, "file is empty")
+                raise FileNotFoundError(path, "file is empty")
+    except FileNotFoundError as e:
+        print(f"获取文件失败:{e}")
+    else:
+        # 将文件内容过滤为纯净文本并拆分，为simhash做准备
+        result = text_filter(text)
+        return result
 
 
 @profile()
