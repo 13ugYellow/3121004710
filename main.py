@@ -5,7 +5,7 @@ from memory_profiler import profile
 from line_profiler import LineProfiler
 
 
-@profile()
+# @profile()
 def text_filter(text):
     # 将文本中的标点符号去除，得到纯净文本
     clean_text = re.sub(r'\W+', '', text).replace("_", '')
@@ -15,15 +15,14 @@ def text_filter(text):
     return result
 
 
-@profile()
+# @profile()
 def read_txt(path):
     # 以读文件方式打开路径中的文件
     try:
         with open(path, 'r', encoding='utf-8') as file:
             text = file.read()
             if not text:
-                # 若没有这个文件则结束程序
-                # print(path, "file is empty")
+                # 抛出异常
                 raise FileNotFoundError(path, "file is empty")
     except FileNotFoundError as e:
         print(f"获取文件失败:{e}")
@@ -33,23 +32,30 @@ def read_txt(path):
         return result
 
 
-@profile()
+# @profile()
 def check_similarity(org, copy, ans):
     org_text = read_txt(org)
     copy_text = read_txt(copy)
 
     # 通过simhash中的Simhash方法计算出文本的simhash值
-    org_hash = Simhash(org_text)
-    copy_hash = Simhash(copy_text)
+    try:
+        org_hash = Simhash(org_text)
+        if not org_hash:
+            raise Exception("读取失败")
+        copy_hash = Simhash(copy_text)
+        if not copy_hash:
+            raise Exception("读取失败")
 
-    # 计算出原文和抄袭文本simhash的海明距离
-    distance = org_hash.distance(copy_hash)
-    # 通过海明距离来计算相似度 64是因为simhash特征向量长度为64
-    similarity = 1 - (distance / 64)
-    print("similarity:{:.2f}%".format(similarity * 100))
-    # 将重复率写入文件ans.txt中 保留两位小数
-    with open(ans, 'w', encoding='utf-8') as file:
-        file.write("重复率为：{:.2f}%".format(similarity * 100))
+        # 计算出原文和抄袭文本simhash的海明距离
+        distance = org_hash.distance(copy_hash)
+        # 通过海明距离来计算相似度 64是因为simhash特征向量长度为64
+        similarity = 1 - (distance / 64)
+        print("similarity:{:.2f}%".format(similarity * 100))
+        # 将重复率写入文件ans.txt中 保留两位小数
+        with open(ans, 'w', encoding='utf-8') as file:
+            file.write("重复率为：{:.2f}%".format(similarity * 100))
+    except Exception as e:
+        print("simhash计算失败")
 
 
 if __name__ == '__main__':
